@@ -5,7 +5,6 @@
 import logging, asyncio, os, re, random, pytz, aiohttp, requests, string, json, http.client
 from info import *
 from urllib.parse import urlparse
-from imdb import Cinemagoer 
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram import enums
 from pyrogram.errors import *
@@ -18,6 +17,12 @@ from database.join_reqs import JoinReqs
 from bs4 import BeautifulSoup
 from shortzy import Shortzy
 
+try:
+    from imdb import Cinemagoer
+except Exception as e:
+    Cinemagoer = None
+    logging.getLogger(__name__).warning('IMDb module import failed: %s', e)
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 join_db = JoinReqs
@@ -25,6 +30,9 @@ BTN_URL_REGEX = re.compile(r"(\[([^\[]+?)\]\((buttonurl|buttonalert):(?:/{0,2})(
 
 
 def _create_imdb():
+    if Cinemagoer is None:
+        logger.warning('IMDb is not available; skipping initialization')
+        return None
     for access in ('https', 'http', 'web', 'html'):
         try:
             logger.info('Initializing IMDb with access system: %s', access)
@@ -123,6 +131,8 @@ async def get_poster(query, bulk=False, id=False, file=None):
                 year = list_to_str(year[:1]) 
         else:
             year = None
+        if imdb is None:
+            return None
         movieid = imdb.search_movie(title.lower(), results=10)
         if not movieid:
             return None
