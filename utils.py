@@ -23,8 +23,22 @@ logger.setLevel(logging.INFO)
 join_db = JoinReqs
 BTN_URL_REGEX = re.compile(r"(\[([^\[]+?)\]\((buttonurl|buttonalert):(?:/{0,2})(.+?)(:same)?\))")
 
-# Force HTTP access to avoid invalid SQLite URI issues in some environments.
-imdb = Cinemagoer('http')
+
+def _create_imdb():
+    for access in ('https', 'http', 'web', 'html'):
+        try:
+            logger.info('Initializing IMDb with access system: %s', access)
+            return Cinemagoer(access)
+        except Exception as e:
+            logger.warning('IMDb access system %s failed: %s', access, e)
+    try:
+        logger.info('Falling back to default IMDb access system')
+        return Cinemagoer()
+    except Exception as e:
+        logger.exception('IMDb initialization failed; IMDb features will be disabled')
+        return None
+
+imdb = _create_imdb()
 TOKENS = {}
 VERIFIED = {}
 BANNED = {}
