@@ -1,0 +1,7 @@
+﻿__pycache__/
+*.py[cod]
+TMPSBot.session
+TELEGRAM BOT.LOG
+plugins/Extra/engine.py
+.env
+
